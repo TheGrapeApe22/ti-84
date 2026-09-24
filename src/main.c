@@ -32,6 +32,7 @@ static uint8_t input_length, cursor_position;
 static bool alpha_mode = true, uppercase_once;
 static bool database_ready;
 static char database_error[UNITS_RESULT_CAPACITY];
+static char prompt_error[UNITS_RESULT_CAPACITY];
 static prompt_t prompt = PROMPT_HAVE;
 
 static void copy_text(char *out, size_t cap, const char *text) {
@@ -84,11 +85,28 @@ static void recall_history(void) {
 
 static void submit_input(void) {
     history_entry_t *entry;
-    if (!input_length) return;
+    char result[UNITS_RESULT_CAPACITY];
+
     if (prompt == PROMPT_HAVE) {
+        if (!input_length) return;
+        if (!units_validate_have(input, prompt_error, sizeof(prompt_error))) return;
+        prompt_error[0] = '\0';
         copy_text(pending_have, sizeof(pending_have), input);
-        reset_input(); prompt = PROMPT_WANT; return;
+        reset_input();
+        prompt = PROMPT_WANT;
+        return;
     }
+
+    if (input_length) {
+        if (!units_convert(pending_have, input, result, sizeof(result))) {
+            copy_text(prompt_error, sizeof(prompt_error), result);
+            return;
+        }
+    } else if (!units_describe(pending_have, result, sizeof(result))) {
+        copy_text(prompt_error, sizeof(prompt_error), result);
+        return;
+    }
+
     if (history_count == HISTORY_CAPACITY) {
         memmove(&history[0], &history[1], sizeof(history[0]) * (HISTORY_CAPACITY - 1));
         history_count--;
@@ -96,9 +114,11 @@ static void submit_input(void) {
     entry = &history[history_count++];
     copy_text(entry->have, sizeof(entry->have), pending_have);
     copy_text(entry->want, sizeof(entry->want), input);
-    if (database_ready) units_convert(entry->have, entry->want, entry->result, sizeof(entry->result));
-    else copy_text(entry->result, sizeof(entry->result), database_error);
-    reset_input(); pending_have[0] = '\0'; prompt = PROMPT_HAVE;
+    copy_text(entry->result, sizeof(entry->result), result);
+    prompt_error[0] = '\0';
+    reset_input();
+    pending_have[0] = '\0';
+    prompt = PROMPT_HAVE;
 }
 
 static void handle_key(uint8_t key) {
@@ -120,18 +140,20 @@ static void handle_key(uint8_t key) {
         return;
     }
     if (key == sk_Enter) { if (selected_history >= 0) recall_history(); else submit_input(); return; }
-    if (key == sk_Clear) { selected_history = -1; reset_input(); uppercase_once = false; return; }
+    if (key == sk_Clear) { selected_history = -1; reset_input(); prompt_error[0] = '\0'; uppercase_once = false; return; }
     if (key == sk_Del) {
         selected_history = -1;
         if (cursor_position) {
             memmove(&input[cursor_position - 1], &input[cursor_position], input_length - cursor_position + 1);
             cursor_position--; input_length--;
+            prompt_error[0] = '\0';
         }
         return;
     }
     selected_history = -1;
     c = alpha_mode ? alpha_character(key) : number_character(key);
     if (alpha_mode && c >= 'A' && c <= 'Z') { if (!uppercase_once) c += 'a' - 'A'; uppercase_once = false; }
+    if (c) prompt_error[0] = '\0';
     insert_character(c);
 }
 
@@ -174,7 +196,8 @@ static void draw_screen(void) {
     for (i = 0; i < shown; i++) {
         uint8_t index = first + i; char line[64];
         if ((int8_t)index == selected_history) { gfx_SetColor(COLOR_SELECTION); gfx_FillRectangle(4, y - 3, 312, 39); }
-        snprintf(line, sizeof(line), "%s -> %s", history[index].have, history[index].want);
+        if (history[index].want[0]) snprintf(line, sizeof(line), "%s -> %s", history[index].have, history[index].want);
+        else copy_text(line, sizeof(line), history[index].have);
         print_at(">", 8, y, COLOR_ACCENT); print_fitted(line, 20, y, 296, COLOR_TEXT);
         print_fitted(history[index].result, 20, y + 19, 296, COLOR_MUTED); y += 46;
     }
@@ -183,11 +206,12 @@ static void draw_screen(void) {
         else { print_at("Database error:", 8, 42, COLOR_ACCENT); print_fitted(database_error, 8, 63, 304, COLOR_MUTED); }
     }
     gfx_SetColor(COLOR_PANEL); gfx_FillRectangle(0, 170, 320, 70);
-    if (prompt == PROMPT_WANT) {
+    if (prompt_error[0]) print_fitted(prompt_error, 8, 174, 304, COLOR_ACCENT);
+    else if (prompt == PROMPT_WANT) {
         print_at("Have: ", 8, 174, COLOR_MUTED);
         print_fitted(pending_have, gfx_GetTextX(), 174, 312 - gfx_GetTextX(), COLOR_TEXT);
-        print_at("You want:", 8, 196, COLOR_MUTED);
-    } else print_at("You have:", 8, 196, COLOR_MUTED);
+    }
+    print_at(prompt == PROMPT_WANT ? "You want:" : "You have:", 8, 196, COLOR_MUTED);
     print_at(">", 8, 219, COLOR_ACCENT); print_at(input, 20, 219, COLOR_TEXT);
     gfx_SetColor(COLOR_ACCENT); gfx_VertLine(cursor_x(), 216, 18);
 }

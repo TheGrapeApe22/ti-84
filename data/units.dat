@@ -1,127 +1,116 @@
-# UNITDB: P|prefix|scale or U|name|scale|offset|L|M|T|Temp|I|N|J
-# Names, aliases, plurals, abbreviations, and prefixes are case-sensitive.
-P|giga|1e9
-P|mega|1e6
-P|kilo|1e3
-P|centi|1e-2
-P|milli|1e-3
-P|micro|1e-6
-P|nano|1e-9
-P|k|1e3
-P|c|1e-2
-P|m|1e-3
-P|u|1e-6
-# length
-U|m|1|0|1|0|0|0|0|0|0
-U|meter|1|0|1|0|0|0|0|0|0
-U|meters|1|0|1|0|0|0|0|0|0
-U|metre|1|0|1|0|0|0|0|0|0
-U|metres|1|0|1|0|0|0|0|0|0
-U|in|0.0254|0|1|0|0|0|0|0|0
-U|inch|0.0254|0|1|0|0|0|0|0|0
-U|inches|0.0254|0|1|0|0|0|0|0|0
-U|ft|0.3048|0|1|0|0|0|0|0|0
-U|foot|0.3048|0|1|0|0|0|0|0|0
-U|feet|0.3048|0|1|0|0|0|0|0|0
-U|yd|0.9144|0|1|0|0|0|0|0|0
-U|yard|0.9144|0|1|0|0|0|0|0|0
-U|yards|0.9144|0|1|0|0|0|0|0|0
-U|mi|1609.344|0|1|0|0|0|0|0|0
-U|mile|1609.344|0|1|0|0|0|0|0|0
-U|miles|1609.344|0|1|0|0|0|0|0|0
-U|nmi|1852|0|1|0|0|0|0|0|0
-# mass
-U|kg|1|0|0|1|0|0|0|0|0
-U|kilogram|1|0|0|1|0|0|0|0|0
-U|kilograms|1|0|0|1|0|0|0|0|0
-U|g|0.001|0|0|1|0|0|0|0|0
-U|gram|0.001|0|0|1|0|0|0|0|0
-U|grams|0.001|0|0|1|0|0|0|0|0
-U|lb|0.45359237|0|0|1|0|0|0|0|0
-U|lbs|0.45359237|0|0|1|0|0|0|0|0
-U|pound|0.45359237|0|0|1|0|0|0|0|0
-U|pounds|0.45359237|0|0|1|0|0|0|0|0
-U|oz|0.028349523125|0|0|1|0|0|0|0|0
-U|ounce|0.028349523125|0|0|1|0|0|0|0|0
-U|ounces|0.028349523125|0|0|1|0|0|0|0|0
-# time
-U|s|1|0|0|0|1|0|0|0|0
-U|sec|1|0|0|0|1|0|0|0|0
-U|second|1|0|0|0|1|0|0|0|0
-U|seconds|1|0|0|0|1|0|0|0|0
-U|min|60|0|0|0|1|0|0|0|0
-U|minute|60|0|0|0|1|0|0|0|0
-U|minutes|60|0|0|0|1|0|0|0|0
-U|h|3600|0|0|0|1|0|0|0|0
-U|hr|3600|0|0|0|1|0|0|0|0
-U|hour|3600|0|0|0|1|0|0|0|0
-U|hours|3600|0|0|0|1|0|0|0|0
-U|day|86400|0|0|0|1|0|0|0|0
-U|days|86400|0|0|0|1|0|0|0|0
-U|week|604800|0|0|0|1|0|0|0|0
-U|weeks|604800|0|0|0|1|0|0|0|0
-U|year|31557600|0|0|0|1|0|0|0|0
-U|years|31557600|0|0|0|1|0|0|0|0
-# temperature: base kelvin = (input + offset) * scale
-U|K|1|0|0|0|0|1|0|0|0
-U|kelvin|1|0|0|0|0|1|0|0|0
-U|C|1|273.15|0|0|0|1|0|0|0
-U|celsius|1|273.15|0|0|0|1|0|0|0
-U|F|0.5555555555555556|459.67|0|0|0|1|0|0|0
-U|fahrenheit|0.5555555555555556|459.67|0|0|0|1|0|0|0
-U|R|0.5555555555555556|0|0|0|0|1|0|0|0
-U|rankine|0.5555555555555556|0|0|0|0|1|0|0|0
-# area and volume
-U|acre|4046.8564224|0|2|0|0|0|0|0|0
-U|acres|4046.8564224|0|2|0|0|0|0|0|0
-U|hectare|10000|0|2|0|0|0|0|0|0
-U|hectares|10000|0|2|0|0|0|0|0|0
-U|L|0.001|0|3|0|0|0|0|0|0
-U|liter|0.001|0|3|0|0|0|0|0|0
-U|liters|0.001|0|3|0|0|0|0|0|0
-U|litre|0.001|0|3|0|0|0|0|0|0
-U|litres|0.001|0|3|0|0|0|0|0|0
-U|gal|0.003785411784|0|3|0|0|0|0|0|0
-U|gallon|0.003785411784|0|3|0|0|0|0|0|0
-U|gallons|0.003785411784|0|3|0|0|0|0|0|0
-U|qt|0.000946352946|0|3|0|0|0|0|0|0
-U|pint|0.000473176473|0|3|0|0|0|0|0|0
-U|cup|0.0002365882365|0|3|0|0|0|0|0|0
-U|tbsp|0.00001478676478125|0|3|0|0|0|0|0|0
-U|tsp|0.00000492892159375|0|3|0|0|0|0|0|0
-# derived units
-U|N|1|0|1|1|-2|0|0|0|0
-U|newton|1|0|1|1|-2|0|0|0|0
-U|newtons|1|0|1|1|-2|0|0|0|0
-U|lbf|4.4482216152605|0|1|1|-2|0|0|0|0
-U|mph|0.44704|0|1|0|-1|0|0|0|0
-U|kph|0.2777777777777778|0|1|0|-1|0|0|0|0
-U|knot|0.5144444444444444|0|1|0|-1|0|0|0|0
-U|knots|0.5144444444444444|0|1|0|-1|0|0|0|0
-U|Pa|1|0|-1|1|-2|0|0|0|0
-U|pa|1|0|-1|1|-2|0|0|0|0
-U|pascal|1|0|-1|1|-2|0|0|0|0
-U|bar|100000|0|-1|1|-2|0|0|0|0
-U|atm|101325|0|-1|1|-2|0|0|0|0
-U|psi|6894.757293168|0|-1|1|-2|0|0|0|0
-U|J|1|0|2|1|-2|0|0|0|0
-U|joule|1|0|2|1|-2|0|0|0|0
-U|joules|1|0|2|1|-2|0|0|0|0
-U|cal|4.184|0|2|1|-2|0|0|0|0
-U|calorie|4.184|0|2|1|-2|0|0|0|0
-U|calories|4.184|0|2|1|-2|0|0|0|0
-U|Wh|3600|0|2|1|-2|0|0|0|0
-U|wh|3600|0|2|1|-2|0|0|0|0
-U|btu|1055.05585262|0|2|1|-2|0|0|0|0
-U|W|1|0|2|1|-3|0|0|0|0
-U|watt|1|0|2|1|-3|0|0|0|0
-U|watts|1|0|2|1|-3|0|0|0|0
-U|hp|745.69987158227|0|2|1|-3|0|0|0|0
-# other SI base dimensions
-U|A|1|0|0|0|0|0|1|0|0
-U|amp|1|0|0|0|0|0|1|0|0
-U|ampere|1|0|0|0|0|0|1|0|0
-U|mol|1|0|0|0|0|0|0|1|0
-U|mole|1|0|0|0|0|0|0|1|0
-U|cd|1|0|0|0|0|0|0|0|1
-U|candela|1|0|0|0|0|0|0|0|1
+# GNU Units-compatible linear database subset for UNITCALC.
+# Syntax: name definition; names ending in '-' define prefixes.
+# '!' marks a primitive unit and '!dimensionless' a dimensionless primitive.
+
+# SI primitives
+m               !
+kg              !
+sec             !
+K               !
+A               !
+mol             !
+cd              !
+
+# Prefixes
+kilo-           1e3
+hecto-          1e2
+deca-           1e1
+deci-           1e-1
+centi-          1e-2
+milli-          1e-3
+micro-          1e-6
+nano-           1e-9
+mega-           1e6
+giga-           1e9
+k-              1e3
+c-              1e-2
+u-              1e-6
+
+# Length
+meter           m
+metre           meter
+inch            2.54 cm
+foot            12 inch
+ft              foot
+feet            foot
+yard            3 foot
+yd              yard
+mile            5280 foot
+mi              mile
+nmi             1852 m
+
+# Mass
+g               0.001 kg
+gram            g
+kilogram        kg
+lb              0.45359237 kg
+pound           lb
+oz              0.0625 lb
+ounce           oz
+stone           14 lb
+
+# Time
+s               sec
+second          sec
+min             60 sec
+minute          min
+h               60 min
+hr              h
+hour            h
+day             24 h
+week            7 day
+year            365.25 day
+
+# Temperature differences (GNU absolute temp functions are not yet supported)
+kelvin          K
+degC            K
+degF            0.5555555555555556 degC
+
+# Area and volume
+acre            43560 foot^2
+hectare         10000 m^2
+L               0.001 m^3
+liter           L
+litre           liter
+gal             231 inch^3
+gallon          gal
+qt              0.25 gal
+quart           qt
+pint            0.5 qt
+cup             0.5 pint
+tbsp            0.0625 cup
+tsp             0.3333333333333333 tbsp
+
+# Force and speed
+N               kg m / sec^2
+newton          N
+lbf             4.4482216152605 N
+mph             mile / h
+kph             km / h
+knot            nmi / h
+
+# Pressure
+Pa              N / m^2
+pa              Pa
+pascal          Pa
+bar             100000 Pa
+atm             101325 Pa
+psi             lbf / inch^2
+
+# Energy and power
+J               N m
+joule           J
+cal             4.184 J
+calorie         cal
+Wh              3600 J
+wh              Wh
+btu             1055.05585262 J
+W               J / sec
+watt            W
+hp              745.69987158227 W
+
+# Other SI aliases
+amp             A
+ampere          A
+mole            mol
+candela         cd
