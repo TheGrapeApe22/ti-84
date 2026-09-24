@@ -198,12 +198,20 @@ static bool parse_primary(parser_t *p, measure_t *out)
 	p->at++;
 	return true;
     }
-    value = strtod(p->at, &end);
-    if (end != p->at) {
-	out->scale = value;
-	memset(out->dim, 0, DIMENSIONS);
-	p->at = end;
-	return true;
+    {
+	const char *number = p->at;
+	if (*number == '+' || *number == '-')
+	    number++;
+	if (isdigit((unsigned char) *number) ||
+	    (*number == '.' && isdigit((unsigned char) number[1]))) {
+	    value = strtod(p->at, &end);
+	    if (end != p->at) {
+		out->scale = value;
+		memset(out->dim, 0, DIMENSIONS);
+		p->at = end;
+		return true;
+	    }
+	}
     }
     while (isalpha((unsigned char) *p->at)) {
 	if (length == MAX_NAME - 1) {
@@ -514,6 +522,29 @@ static void trim_number(char *text)
 	*end = '\0';
 }
 
+static void format_fixed(char *out, size_t cap, double value, uint8_t precision)
+{
+    switch (precision) {
+    case 6: snprintf(out, cap, "%.6f", value); break;
+    case 5: snprintf(out, cap, "%.5f", value); break;
+    case 4: snprintf(out, cap, "%.4f", value); break;
+    case 3: snprintf(out, cap, "%.3f", value); break;
+    case 2: snprintf(out, cap, "%.2f", value); break;
+    case 1: snprintf(out, cap, "%.1f", value); break;
+    default: snprintf(out, cap, "%.0f", value); break;
+    }
+}
+
+static bool has_nonzero_digit(const char *text)
+{
+    while (*text) {
+	if (*text >= '1' && *text <= '9')
+	    return true;
+	text++;
+    }
+    return false;
+}
+
 static void compact_number(double value, char *out, size_t cap)
 {
     char candidate[32], mantissa[24], exponent_text[12];
@@ -524,10 +555,10 @@ static void compact_number(double value, char *out, size_t cap)
 	return;
     }
     for (precision = 6; precision >= 0; precision--) {
-	snprintf(candidate, sizeof(candidate), "%.*f", precision, value);
+	format_fixed(candidate, sizeof(candidate), value, (uint8_t) precision);
 	trim_number(candidate);
 	if (strlen(candidate) <= 8
-	    && (!value || strtod(candidate, NULL) != 0)) {
+	    && (!value || has_nonzero_digit(candidate))) {
 	    copy_text(out, cap, candidate);
 	    return;
 	}
@@ -538,14 +569,15 @@ static void compact_number(double value, char *out, size_t cap)
     }
     exponent = (int) floor(log10(absolute));
     scaled = value / pow(10.0, exponent);
-    snprintf(candidate, sizeof(candidate), "%.6f", scaled);
-    if (fabs(strtod(candidate, NULL)) >= 10.0) {
+    format_fixed(candidate, sizeof(candidate), scaled, 6);
+    { const char *rounded = candidate[0] == '-' ? candidate + 1 : candidate;
+    if (rounded[0] == '1' && rounded[1] == '0' && (rounded[2] == '\0' || rounded[2] == '.')) {
 	exponent++;
 	scaled /= 10.0;
-    }
+    }}
     snprintf(exponent_text, sizeof(exponent_text), "e%d", exponent);
     for (precision = 6; precision >= 0; precision--) {
-	snprintf(mantissa, sizeof(mantissa), "%.*f", precision, scaled);
+	format_fixed(mantissa, sizeof(mantissa), scaled, (uint8_t) precision);
 	trim_number(mantissa);
 	if (strlen(mantissa) + strlen(exponent_text) <= 8) {
 	    copy_text(candidate, sizeof(candidate), mantissa);
