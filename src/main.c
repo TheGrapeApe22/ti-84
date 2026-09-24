@@ -25,6 +25,7 @@ static uint8_t history_count;
 static int8_t selected_history = -1;
 static char input[INPUT_CAPACITY];
 static uint8_t input_length;
+static uint8_t cursor_position;
 static bool alpha_mode = true;
 static bool uppercase_once;
 
@@ -86,10 +87,12 @@ static char number_character(uint8_t key) {
     }
 }
 
-static void append_character(char character) {
+static void insert_character(char character) {
     if (character != '\0' && input_length < INPUT_CAPACITY - 1) {
-        input[input_length++] = character;
-        input[input_length] = '\0';
+        memmove(&input[cursor_position + 1], &input[cursor_position],
+                input_length - cursor_position + 1);
+        input[cursor_position++] = character;
+        input_length++;
     }
 }
 
@@ -102,9 +105,8 @@ static void paste_history(void) {
 
     source = history[(uint8_t)selected_history].text;
     while (*source != '\0' && input_length < INPUT_CAPACITY - 1) {
-        input[input_length++] = *source++;
+        insert_character(*source++);
     }
-    input[input_length] = '\0';
     selected_history = -1;
 }
 
@@ -123,6 +125,7 @@ static void submit_input(void) {
     history_count++;
     input[0] = '\0';
     input_length = 0;
+    cursor_position = 0;
 }
 
 static void handle_key(uint8_t key) {
@@ -137,6 +140,22 @@ static void handle_key(uint8_t key) {
     if (key == sk_Alpha) {
         alpha_mode = !alpha_mode;
         uppercase_once = false;
+        return;
+    }
+
+    if (key == sk_Left) {
+        selected_history = -1;
+        if (cursor_position > 0) {
+            cursor_position--;
+        }
+        return;
+    }
+
+    if (key == sk_Right) {
+        selected_history = -1;
+        if (cursor_position < input_length) {
+            cursor_position++;
+        }
         return;
     }
 
@@ -177,14 +196,18 @@ static void handle_key(uint8_t key) {
         selected_history = -1;
         input[0] = '\0';
         input_length = 0;
+        cursor_position = 0;
         uppercase_once = false;
         return;
     }
 
     if (key == sk_Del) {
         selected_history = -1;
-        if (input_length > 0) {
-            input[--input_length] = '\0';
+        if (cursor_position > 0) {
+            memmove(&input[cursor_position - 1], &input[cursor_position],
+                    input_length - cursor_position + 1);
+            cursor_position--;
+            input_length--;
         }
         return;
     }
@@ -197,13 +220,23 @@ static void handle_key(uint8_t key) {
         }
         uppercase_once = false;
     }
-    append_character(character);
+    insert_character(character);
 }
 
 static void print_at(const char *text, int x, int y, uint8_t color) {
     gfx_SetTextFGColor(color);
     gfx_SetTextXY(x, y);
     gfx_PrintString(text);
+}
+
+static int input_cursor_x(void) {
+    char saved = input[cursor_position];
+    int x;
+
+    input[cursor_position] = '\0';
+    x = 20 + gfx_GetStringWidth(input);
+    input[cursor_position] = saved;
+    return x;
 }
 
 static uint8_t first_visible_history(void) {
@@ -265,7 +298,7 @@ static void draw_screen(void) {
     print_at(input, 20, 219, COLOR_TEXT);
 
     gfx_SetColor(COLOR_ACCENT);
-    gfx_VertLine(20 + gfx_GetStringWidth(input), 216, 18);
+    gfx_VertLine(input_cursor_x(), 216, 18);
 }
 
 int main(void) {
