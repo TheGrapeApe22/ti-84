@@ -8,7 +8,6 @@
 
 #define INPUT_CAPACITY 65
 #define HISTORY_CAPACITY 6
-#define VISIBLE_HISTORY 1
 #define COLOR_BACKGROUND 0
 #define COLOR_PANEL 1
 #define COLOR_TEXT 2
@@ -140,7 +139,18 @@ static void handle_key(uint8_t key) {
         return;
     }
     if (key == sk_Enter) { if (selected_history >= 0) recall_history(); else submit_input(); return; }
-    if (key == sk_Clear) { selected_history = -1; reset_input(); prompt_error[0] = '\0'; uppercase_once = false; return; }
+    if (key == sk_Clear) {
+        if (selected_history >= 0) {
+            uint8_t index = (uint8_t)selected_history;
+            if (index + 1 < history_count) memmove(&history[index], &history[index + 1], sizeof(history[0]) * (history_count - index - 1));
+            history_count--;
+            if (!history_count) selected_history = -1;
+            else if (index >= history_count) selected_history = (int8_t)history_count - 1;
+        } else {
+            reset_input(); prompt_error[0] = '\0'; uppercase_once = false;
+        }
+        return;
+    }
     if (key == sk_Del) {
         selected_history = -1;
         if (cursor_position) {
@@ -197,28 +207,41 @@ static void cursor_location(int *x, int *y) {
     *x = 20; *y = 212;
 }
 
-static uint8_t first_visible(void) {
-    uint8_t first;
-    if (history_count <= VISIBLE_HISTORY) return 0;
-    first = history_count - VISIBLE_HISTORY;
-    if (selected_history >= 0 && selected_history < (int8_t)first) first = (uint8_t)selected_history;
-    return first;
+static uint8_t wrapped_line_count(const char *text, unsigned int width, uint8_t maximum) {
+    uint8_t lines = 0, length;
+    do { length = wrapped_length(text, width); text += length; lines++; } while (*text && lines < maximum);
+    return lines;
+}
+
+static void history_layout(uint8_t index, char *line, uint8_t *command_lines, uint8_t *result_lines) {
+    if (history[index].want[0]) snprintf(line, INPUT_CAPACITY * 2 + 5, "%s -> %s", history[index].have, history[index].want);
+    else copy_text(line, INPUT_CAPACITY * 2 + 5, history[index].have);
+    *command_lines = wrapped_line_count(line, 296, 3);
+    *result_lines = wrapped_line_count(history[index].result, 296, 5 - *command_lines);
+}
+
+static uint8_t history_height(uint8_t index) {
+    char line[INPUT_CAPACITY * 2 + 5]; uint8_t command_lines, result_lines;
+    history_layout(index, line, &command_lines, &result_lines);
+    return (command_lines + result_lines) * 18 + 4;
 }
 
 static void draw_screen(void) {
-    uint8_t first = first_visible(), shown = history_count - first, i; int cursor_x, cursor_y;
-    if (shown > VISIBLE_HISTORY) shown = VISIBLE_HISTORY;
+    uint8_t first = 0, last = 0, index, used = 0; int cursor_x, cursor_y, y = 28;
+    if (history_count) {
+        last = selected_history >= 0 ? (uint8_t)selected_history : history_count - 1; first = last; used = history_height(first);
+        while (first && used + history_height(first - 1) <= 108) { first--; used += history_height(first); }
+    }
     gfx_FillScreen(COLOR_BACKGROUND);
     gfx_SetColor(COLOR_PANEL); gfx_FillRectangle(0, 0, 320, 24);
     print_at("units", 8, 8, COLOR_TEXT);
     print_at(uppercase_once ? "(ABC)" : (alpha_mode ? "(abc)" : "(123)"), 270, 8, COLOR_ACCENT);
-    for (i = 0; i < shown; i++) {
-        uint8_t index = first + i; char line[INPUT_CAPACITY * 2 + 5]; int y = 28;
-        if ((int8_t)index == selected_history) { gfx_SetColor(COLOR_SELECTION); gfx_FillRectangle(4, 25, 312, 110); }
-        if (history[index].want[0]) snprintf(line, sizeof(line), "%s -> %s", history[index].have, history[index].want);
-        else copy_text(line, sizeof(line), history[index].have);
-        print_at(">", 8, y, COLOR_ACCENT); y = draw_wrapped(line, 20, y, 296, 3, COLOR_TEXT);
-        draw_wrapped(history[index].result, 20, y + 1, 296, 3, COLOR_MUTED);
+    if (history_count) for (index = first; index <= last; index++) {
+        char line[INPUT_CAPACITY * 2 + 5]; uint8_t command_lines, result_lines, height;
+        history_layout(index, line, &command_lines, &result_lines); height = (command_lines + result_lines) * 18 + 4;
+        if ((int8_t)index == selected_history) { gfx_SetColor(COLOR_SELECTION); gfx_FillRectangle(4, y - 3, 312, height); }
+        print_at(">", 8, y, COLOR_ACCENT); y = draw_wrapped(line, 20, y, 296, command_lines, COLOR_TEXT);
+        y = draw_wrapped(history[index].result, 20, y, 296, result_lines, COLOR_MUTED) + 4;
     }
     if (!history_count) {
         if (database_ready) print_at("Enter a value and its unit.", 8, 48, COLOR_MUTED);

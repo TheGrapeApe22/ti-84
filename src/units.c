@@ -151,22 +151,33 @@ bool units_load(char *error, size_t cap) {
     loaded = true; return true;
 }
 bool units_validate_have(const char *have, char *error, size_t cap) { measure_t value; if (!loaded) { copy_text(error, cap, "UNITDB is not loaded"); return false; } return parse_quantity(have, &value, error, cap); }
+static void trim_number(char *text) {
+    char *dot = strchr(text, '.'), *end;
+    if (!dot) return;
+    end = text + strlen(text) - 1;
+    while (end > dot && *end == '0') *end-- = '\0';
+    if (end == dot) *end = '\0';
+}
 static void compact_number(double value, char *out, size_t cap) {
-    char normal[32], scientific[32], mantissa[24], *exponent_at, *end;
-    int exponent; size_t length;
-    snprintf(normal, sizeof(normal), "%.10g", value);
-    if (strlen(normal) <= 8 && !strchr(normal, 'e')) { copy_text(out, cap, normal); return; }
-    snprintf(scientific, sizeof(scientific), "%.6e", value);
-    exponent_at = strchr(scientific, 'e');
-    if (!exponent_at) { copy_text(out, cap, scientific); return; }
-    length = (size_t)(exponent_at - scientific);
-    if (length >= sizeof(mantissa)) length = sizeof(mantissa) - 1;
-    memcpy(mantissa, scientific, length); mantissa[length] = '\0';
-    end = mantissa + strlen(mantissa) - 1;
-    while (end > mantissa && *end == '0') *end-- = '\0';
-    if (end > mantissa && *end == '.') *end = '\0';
-    exponent = (int)strtol(exponent_at + 1, NULL, 10);
-    snprintf(out, cap, "%se%d", mantissa, exponent);
+    char candidate[32], mantissa[24], exponent_text[12];
+    double absolute = fabs(value), scaled; int precision, exponent;
+    if (!isfinite(value)) { copy_text(out, cap, value < 0 ? "-inf" : "inf"); return; }
+    for (precision = 6; precision >= 0; precision--) {
+        snprintf(candidate, sizeof(candidate), "%.*f", precision, value); trim_number(candidate);
+        if (strlen(candidate) <= 8 && (!value || strtod(candidate, NULL) != 0)) { copy_text(out, cap, candidate); return; }
+    }
+    if (!absolute) { copy_text(out, cap, "0"); return; }
+    exponent = (int)floor(log10(absolute)); scaled = value / pow(10.0, exponent);
+    snprintf(candidate, sizeof(candidate), "%.6f", scaled);
+    if (fabs(strtod(candidate, NULL)) >= 10.0) { exponent++; scaled /= 10.0; }
+    snprintf(exponent_text, sizeof(exponent_text), "e%d", exponent);
+    for (precision = 6; precision >= 0; precision--) {
+        snprintf(mantissa, sizeof(mantissa), "%.*f", precision, scaled); trim_number(mantissa);
+        if (strlen(mantissa) + strlen(exponent_text) <= 8) {
+            copy_text(candidate, sizeof(candidate), mantissa); strncat(candidate, exponent_text, sizeof(candidate) - strlen(candidate) - 1); copy_text(out, cap, candidate); return;
+        }
+    }
+    snprintf(out, cap, "%.1fe%d", scaled, exponent);
 }
 static void primitive_form(const measure_t *value, char *out, size_t cap) {
     char part[28], number[32]; uint8_t i; compact_number(value->scale, number, sizeof(number)); copy_text(out, cap, number);

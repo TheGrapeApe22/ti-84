@@ -1,6 +1,6 @@
 # units for TI-84 Plus CE
 
-Input is limited to 64 characters. Inputs and results wrap across multiple display lines, and the latest 6 entries are retained. Numeric results longer than 8 characters use compact scientific notation such as `1e8`.
+Input is limited to 64 characters. Inputs and results wrap across multiple display lines, and the latest 6 entries are retained. Numeric values are limited to 8 displayed characters, have trailing zeros removed, and use compact scientific notation such as `1e8` when needed. History entries use only the lines they need; select one with Up/Down and press Clear to delete it without changing the current input.
 
 ## Build
 
