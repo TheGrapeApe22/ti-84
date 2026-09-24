@@ -199,16 +199,42 @@ static bool parse_primary(parser_t *p, measure_t *out)
 	return true;
     }
     {
-	const char *number = p->at;
-	if (*number == '+' || *number == '-')
-	    number++;
-	if (isdigit((unsigned char) *number) ||
-	    (*number == '.' && isdigit((unsigned char) number[1]))) {
-	    value = strtod(p->at, &end);
-	    if (end != p->at) {
+	const char *start = p->at, *scan = p->at, *exponent;
+	char number_text[66];
+	size_t number_length;
+	if (*scan == '+' || *scan == '-')
+	    scan++;
+	if (isdigit((unsigned char) *scan) ||
+	    (*scan == '.' && isdigit((unsigned char) scan[1]))) {
+	    while (isdigit((unsigned char) *scan))
+		scan++;
+	    if (*scan == '.') {
+		scan++;
+		while (isdigit((unsigned char) *scan))
+		    scan++;
+	    }
+	    if (*scan == 'e' || *scan == 'E') {
+		exponent = scan + 1;
+		if (*exponent == '+' || *exponent == '-')
+		    exponent++;
+		if (isdigit((unsigned char) *exponent)) {
+		    scan = exponent + 1;
+		    while (isdigit((unsigned char) *scan))
+			scan++;
+		}
+	    }
+	    number_length = (size_t) (scan - start);
+	    if (number_length >= sizeof(number_text)) {
+		fail(p, "Number is too long");
+		return false;
+	    }
+	    memcpy(number_text, start, number_length);
+	    number_text[number_length] = '\0';
+	    value = strtod(number_text, &end);
+	    if (end != number_text) {
 		out->scale = value;
 		memset(out->dim, 0, DIMENSIONS);
-		p->at = end;
+		p->at = scan;
 		return true;
 	    }
 	}
