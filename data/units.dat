@@ -1,116 +1,291 @@
-# GNU Units-compatible linear database subset for UNITCALC.
-# Syntax: name definition; names ending in '-' define prefixes.
-# '!' marks a primitive unit and '!dimensionless' a dimensionless primitive.
+m !
+kg !
+s !
+K !
+A !
+mol !
+cd !
+radian !dimensionless
+steradian !dimensionless
+tera- 1e12
+giga- 1e9
+mega- 1e6
+kilo- 1e3
+deci- 1e-1
+centi- 1e-2
+milli- 1e-3
+micro- 1e-6
+nano- 1e-9
+pico- 1e-12
+femto- 1e-15
+T- 1e12
+G- 1e9
+M- 1e6
+k- 1e3
+d- 1e-1
+c- 1e-2
+m- 1e-3
+u- 1e-6
+n- 1e-9
 
-# SI primitives
-m               !
-kg              !
-s             !
-K               !
-A               !
-mol             !
-cd              !
+g 0.001 kg
+candela cd
+degree 0.0174532925199433 radian
+percent 0.01
 
-# Prefixes
-kilo-           1e3
-hecto-          1e2
-deca-           1e1
-deci-           1e-1
-centi-          1e-2
-milli-          1e-3
-micro-          1e-6
-nano-           1e-9
-mega-           1e6
-giga-           1e9
-k-              1e3
-c-              1e-2
-u-              1e-6
+min 60 s
+hour 60 min
+hr hour
+day 24 hour
+week 7 day
+month 365.25 day / 12
+year 365.25 day
 
-# Length
-meter           m
-metre           meter
-inch            2.54 cm
-foot            12 inch
-ft              foot
-feet            foot
-yard            3 foot
-yd              yard
-mile            5280 foot
-mi              mile
-nmi             1852 m
+inch 0.0254 m
+foot 12 inch
+ft foot
+feet ft
+yard 3 foot
+mile 5280 foot
+mi mile
+nmi 1852 m
+angstrom 1e-10 m
+micron 1e-6 m
+au 149597870700 m
+parsec 206264.806247 au
+lightyear 299792458 m / s * year
 
-# Mass
-g               0.001 kg
-gram            g
-kilogram        kg
-lb              0.45359237 kg
-pound           lb
-oz              0.0625 lb
-ounce           oz
-stone           14 lb
+hectare 10000 m^2
+acre 43560 foot^2
+L 0.001 m^3
+liter L
+litre L
+cc 1e-6 m^3
+gallon 231 inch^3
+gal gallon
+quart gallon / 4
+pint quart / 2
+cup pint / 2
+tbsp cup / 16
+tablespoon tbsp
+tsp tbsp / 3
+fluidounce cup / 8
 
-# Time
-sec             s
-second          s
-min             60 s
-minute          min
-h               60 min
-hr              h
-hour            h
-day             24 h
-week            7 day
-year            365.25 day
+tonne 1000 kg
+lb 0.45359237 kg
+ton 907.18474 kg
+pound lb
+oz lb / 16
+ounce oz
+carat 0.0002 kg
+amu 1.6605390666e-27 kg
+solarmass 1.98847e30 kg
+earthmass 5.9722e24 kg
 
-# Temperature differences (GNU absolute temp functions are not yet supported)
-kelvin          K
-degC            K
-degF            0.5555555555555556 degC
+N kg m / s^2
+lbf 4.4482216152605 N
+dyne 1e-5 N
+Pa N / m^2
+pascal Pa
+bar 100000 Pa
+atm 101325 Pa
+psi lbf / inch^2
+torr atm / 760
+mmHg 133.322387415 Pa
 
-# Area and volume
-acre            43560 foot^2
-hectare         10000 m^2
-L               0.001 m^3
-liter           L
-litre           liter
-gal             231 inch^3
-gallon          gal
-qt              0.25 gal
-quart           qt
-pint            0.5 qt
-cup             0.5 pint
-tbsp            0.0625 cup
-tsp             0.3333333333333333 tbsp
+J N m
+joule J
+eV 1.602176634e-19 J
+calorie 4.184 J
+cal calorie
+kcal 1000 cal
+btu 1055.05585262 J
+Wh 3600 J
+W J / s
+watt W
+hp 745.699871582 W
 
-# Force and speed
-N               kg m / sec^2
-newton          N
-lbf             4.4482216152605 N
-mph             mile / h
-kph             km / h
-knot            nmi / h
+coulomb A s
+C coulomb
+volt W / A
+V volt
+ohm V / A
+siemens A / V
+farad C / V
+F farad
+weber V s
+tesla weber / m^2
+T tesla
+hertz 1 / s
+Hz hertz
 
-# Pressure
-Pa              N / m^2
-pa              Pa
-pascal          Pa
-bar             100000 Pa
-atm             101325 Pa
-psi             lbf / inch^2
+degC K
+degF 0.555555555555556 K
+mph mile / hour
+kph 1000 m / hour
+molar mol / L
+M molar
 
-# Energy and power
-J               N m
-joule           J
-cal             4.184 J
-calorie         cal
-Wh              3600 J
-wh              Wh
-btu             1055.05585262 J
-W               J / sec
-watt            W
-hp              745.69987158227 W
+pi 3.141592653589793
+e 2.718281828459045
+tau 2 pi
+phi 1.618033988749895
 
-# Other SI aliases
-amp             A
-ampere          A
-mole            mol
-candela         cd
+c 299792458 m / s
+gravity 9.80665 m / s^2
+G 6.67430e-11 m^3 / kg / s^2
+h 6.62607015e-34 J s
+avogadro 6.02214076e23 / mol
+R 8.31446261815324 J / mol / K
+electroncharge 1.602176634e-19 C
+electronmass 9.1093837139e-31 kg
+protonmass 1.67262192595e-27 kg
+neutronmass 1.67492750056e-27 kg
+faradayconstant 96485.33212331002 C / mol
+bohrradius 5.29177210544e-11 m
+
+waterheat 4184 J / kg / K
+specificheatwater waterheat
+iceheat 2090 J / kg / K
+steamheat 2010 J / kg / K
+waterdensity 1000 kg / m^3
+airdensity 1.225 kg / m^3
+
+earthradius 6.371e6 m
+moonradius 1.7374e6 m
+sunradius 6.957e8 m
+sunluminosity 3.828e26 W
+lunarmass 7.342e22 kg
+moondistance 3.844e8 m
+solartemp 5772 K
+
+hydrogen      1.008 g/mol
+helium     4.0026 g/mol
+lithium     6.94 g/mol
+beryllium     9.0122 g/mol
+boron      10.81 g/mol
+carbon      12.011 g/mol
+nitrogen      14.007 g/mol
+oxygen      15.999 g/mol
+fluorine      18.9984 g/mol
+neon     20.180 g/mol
+sodium     22.990 g/mol
+magnesium     24.305 g/mol
+aluminium     26.982 g/mol
+silicon     28.085 g/mol
+phosphorus      30.974 g/mol
+sulfur      32.06 g/mol
+chlorine     35.45 g/mol
+argon     39.95 g/mol
+potassium      39.098 g/mol
+calcium     40.078 g/mol
+scandium     44.956 g/mol
+titanium     47.867 g/mol
+vanadium      50.942 g/mol
+chromium     51.996 g/mol
+manganese     54.938 g/mol
+iron     55.845 g/mol
+cobalt     58.933 g/mol
+nickel     58.693 g/mol
+copper     63.546 g/mol
+zinc     65.38 g/mol
+gallium     69.723 g/mol
+germanium     72.630 g/mol
+arsenic     74.922 g/mol
+selenium     78.971 g/mol
+bromine     79.904 g/mol
+krypton     83.798 g/mol
+rubidium     85.468 g/mol
+strontium     87.62 g/mol
+yttrium      88.906 g/mol
+zirconium     91.224 g/mol
+niobium     92.906 g/mol
+molybdenum     95.95 g/mol
+technetium     98 g/mol
+ruthenium     101.07 g/mol
+rhodium     102.91 g/mol
+palladium     106.42 g/mol
+silver     107.87 g/mol
+cadmium     112.41 g/mol
+indium     114.82 g/mol
+tin     118.71 g/mol
+antimony     121.76 g/mol
+tellurium     127.60 g/mol
+iodine      126.90 g/mol
+xenon     131.29 g/mol
+caesium     132.91 g/mol
+barium     137.33 g/mol
+lanthanum     138.91 g/mol
+cerium     140.12 g/mol
+praseodymium     140.91 g/mol
+neodymium     144.24 g/mol
+promethium     145 g/mol
+samarium     150.36 g/mol
+europium     151.96 g/mol
+gadolinium     157.25 g/mol
+terbium     158.93 g/mol
+dysprosium     162.50 g/mol
+holmium     164.93 g/mol
+erbium     167.26 g/mol
+thulium     168.93 g/mol
+ytterbium     173.05 g/mol
+lutetium     174.97 g/mol
+hafnium     178.49 g/mol
+tantalum     180.95 g/mol
+tungsten      183.84 g/mol
+rhenium     186.21 g/mol
+osmium     190.23 g/mol
+iridium     192.22 g/mol
+platinum     195.08 g/mol
+gold     196.97 g/mol
+mercury     200.59 g/mol
+thallium     204.38 g/mol
+lead     207.2 g/mol
+bismuth     208.98 g/mol
+polonium     209 g/mol
+astatine     210 g/mol
+radon     222 g/mol
+francium     223 g/mol
+radium     226 g/mol
+actinium     227 g/mol
+thorium     232.04 g/mol
+protactinium     231.04 g/mol
+uranium      238.03 g/mol
+neptunium     237 g/mol
+plutonium     244 g/mol
+americium     243 g/mol
+curium     247 g/mol
+berkelium     247 g/mol
+californium     251 g/mol
+einsteinium     252 g/mol
+fermium     257 g/mol
+mendelevium     258 g/mol
+nobelium     259 g/mol
+lawrencium     266 g/mol
+rutherfordium     267 g/mol
+dubnium     268 g/mol
+seaborgium     269 g/mol
+bohrium     270 g/mol
+hassium     270 g/mol
+meitnerium     278 g/mol
+darmstadtium     281 g/mol
+roentgenium     282 g/mol
+copernicium     285 g/mol
+nihonium     286 g/mol
+flerovium     289 g/mol
+moscovium     290 g/mol
+livermorium     293 g/mol
+tennessine     294 g/mol
+oganesson     294 g/mol
+natrium sodium
+kalium potassium
+wolfram tungsten
+
+
+tnt                     1e9 cal / ton
+davycrocket             10 ton tnt
+hiroshima               15.5 kiloton tnt
+nagasaki                21 kiloton tnt
+fatman                  nagasaki
+littleboy               hiroshima
+tsarbomba               50 megaton tnt

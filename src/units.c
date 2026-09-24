@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #define DB_CAPACITY 12288
-#define MAX_UNITS 128
+#define MAX_UNITS 256
 #define MAX_PREFIXES 20
 #define MAX_NAME 20
 #define DIMENSIONS 7
@@ -21,12 +21,13 @@ static char db[DB_CAPACITY];
 static unit_t units[MAX_UNITS];
 static prefix_t prefixes[MAX_PREFIXES];
 static char primitive_name[DIMENSIONS][MAX_NAME];
-static uint8_t unit_count, prefix_count, primitive_count;
+static uint16_t unit_count;
+static uint8_t prefix_count, primitive_count;
 static bool loaded;
 static void copy_text(char *out, size_t cap, const char *text) { if (cap) { strncpy(out, text, cap - 1); out[cap - 1] = '\0'; } }
 static void fail(parser_t *p, const char *text) { if (!p->error[0]) copy_text(p->error, sizeof(p->error), text); }
 static void spaces(parser_t *p) { while (isspace((unsigned char)*p->at)) p->at++; }
-static const unit_t *find_exact(const char *name) { uint8_t i; for (i = 0; i < unit_count; i++) if (!strcmp(name, units[i].name)) return &units[i]; return NULL; }
+static const unit_t *find_exact(const char *name) { uint16_t i; for (i = 0; i < unit_count; i++) if (!strcmp(name, units[i].name)) return &units[i]; return NULL; }
 static bool parse_expression(parser_t *p, measure_t *out);
 static bool resolve_unit(unit_t *unit, char *error, size_t cap) {
     parser_t parser; uint8_t index;
@@ -56,7 +57,6 @@ static const unit_t *plural_unit(const char *name) {
 }
 static bool lookup(const char *name, measure_t *out, const unit_t **matched, const prefix_t **used_prefix) {
     unit_t *unit = (unit_t *)find_exact(name); const prefix_t *best_prefix = NULL; size_t best = 0; uint8_t i; char error[UNITS_RESULT_CAPACITY];
-    if (!unit) unit = (unit_t *)plural_unit(name);
     if (!unit) {
         for (i = 0; i < prefix_count; i++) { size_t n = strlen(prefixes[i].name); unit_t *candidate;
             if (!n || n <= best || strncmp(name, prefixes[i].name, n) || !name[n]) continue;
@@ -64,6 +64,7 @@ static bool lookup(const char *name, measure_t *out, const unit_t **matched, con
             if (candidate) { best = n; unit = candidate; best_prefix = &prefixes[i]; }
         }
     }
+    if (!unit) unit = (unit_t *)plural_unit(name);
     if (!unit || !resolve_unit(unit, error, sizeof(error))) return false;
     *out = unit->value; if (best_prefix) out->scale *= best_prefix->scale;
     if (matched) *matched = unit;
@@ -152,7 +153,7 @@ static bool read_database(char *error, size_t cap) {
     if (!unit_count) { copy_text(error, cap, "UNITDB contains no units"); return false; } return true;
 }
 bool units_load(char *error, size_t cap) {
-    uint8_t handle = ti_Open("UNITDB", "r"); uint16_t size; uint8_t i;
+    uint8_t handle = ti_Open("UNITDB", "r"); uint16_t size, i;
     loaded = false; unit_count = prefix_count = primitive_count = 0; memset(primitive_name, 0, sizeof(primitive_name));
     if (!handle) { copy_text(error, cap, "Missing UNITDB AppVar"); return false; }
     size = ti_GetSize(handle); if (!size || size >= DB_CAPACITY) { ti_Close(handle); copy_text(error, cap, "UNITDB empty or too large"); return false; }
