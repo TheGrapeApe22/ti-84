@@ -89,7 +89,7 @@ static bool combine(measure_t *left, const measure_t *right, bool divide) {
     uint8_t i; if (divide) { left->scale /= right->scale; for (i = 0; i < DIMENSIONS; i++) left->dim[i] -= right->dim[i]; }
     else { left->scale *= right->scale; for (i = 0; i < DIMENSIONS; i++) left->dim[i] += right->dim[i]; } return true;
 }
-static bool parse_expression(parser_t *p, measure_t *out) {
+static bool parse_product(parser_t *p, measure_t *out) {
     if (!parse_factor(p, out)) return false;
     for (;;) { measure_t right; bool divide = false; char next; spaces(p); next = *p->at;
         if (next == '*' || next == '/') { divide = next == '/'; p->at++; }
@@ -97,6 +97,17 @@ static bool parse_expression(parser_t *p, measure_t *out) {
         if (!parse_factor(p, &right)) return false;
         combine(out, &right, divide);
     } return true;
+}
+static bool parse_expression(parser_t *p, measure_t *out) {
+    if (!parse_product(p, out)) return false;
+    for (;;) {
+        measure_t right; char operation; uint8_t i; spaces(p); operation = *p->at;
+        if (operation != '+' && operation != '-') break;
+        p->at++; if (!parse_product(p, &right)) return false;
+        for (i = 0; i < DIMENSIONS; i++) if (out->dim[i] != right.dim[i]) { fail(p, "Cannot add incompatible units"); return false; }
+        if (operation == '+') out->scale += right.scale; else out->scale -= right.scale;
+    }
+    return true;
 }
 static bool parse(const char *text, measure_t *out, char *error, size_t cap) {
     parser_t p = { text, "" }; if (!parse_expression(&p, out)) { copy_text(error, cap, p.error); return false; }

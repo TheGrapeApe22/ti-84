@@ -5,7 +5,7 @@
 # SI primitives
 m               !
 kg              !
-sec             !
+s             !
 K               !
 A               !
 mol             !
@@ -50,9 +50,9 @@ ounce           oz
 stone           14 lb
 
 # Time
-s               sec
-second          sec
-min             60 sec
+sec             s
+second          s
+min             60 s
 minute          min
 h               60 min
 hr              h
