@@ -8,7 +8,8 @@ later.
 ## Controls
 
 - Letter keys: type the lowercase form of the green letter printed above each key.
-- `2ND`: capitalize the next letter only, then return to lowercase.
+- `2ND`: toggle between `(abc)` and one-shot `(ABC)` mode. After one capital
+  letter, input returns to lowercase.
 - `ALPHA`: toggle between `(abc)` and `(123)` input modes. The current mode appears
   in the top-right corner.
 - `0` in `(abc)` mode: type a space.
@@ -17,7 +18,8 @@ later.
 - `UP` / `DOWN`: select a previous input. Press `ENTER` to append the selected
   text to the current input. Pressing `DOWN` past the newest item cancels the
   selection.
-- `CLEAR`: exit.
+- `CLEAR`: clear the current input.
+- `2ND`, then `ON` (`OFF`): exit. This works only while `(ABC)` is shown.
 
 Input is limited to 30 characters and the latest 12 entries are retained.
 

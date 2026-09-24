@@ -130,7 +130,7 @@ static void handle_key(uint8_t key) {
 
     if (key == sk_2nd) {
         alpha_mode = true;
-        uppercase_once = true;
+        uppercase_once = !uppercase_once;
         return;
     }
 
@@ -170,6 +170,14 @@ static void handle_key(uint8_t key) {
         } else {
             submit_input();
         }
+        return;
+    }
+
+    if (key == sk_Clear) {
+        selected_history = -1;
+        input[0] = '\0';
+        input_length = 0;
+        uppercase_once = false;
         return;
     }
 
@@ -252,7 +260,7 @@ static void draw_screen(void) {
     gfx_SetColor(COLOR_PANEL);
     gfx_FillRectangle(0, 190, 320, 50);
     print_at(selected_history >= 0 ? "ENTER: paste selected line" :
-             "2ND: caps  ALPHA: abc/123", 8, 196, COLOR_MUTED);
+             "2ND+ON: exit  ALPHA: abc/123", 8, 196, COLOR_MUTED);
     print_at(">", 8, 219, COLOR_ACCENT);
     print_at(input, 20, 219, COLOR_TEXT);
 
@@ -279,7 +287,11 @@ int main(void) {
     draw_screen();
     gfx_SwapDraw();
 
-    while ((key = os_GetCSC()) != sk_Clear) {
+    for (;;) {
+        if (boot_CheckOnPressed() && uppercase_once) {
+            break;
+        }
+        key = os_GetCSC();
         if (key != 0) {
             handle_key(key);
             draw_screen();
