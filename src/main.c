@@ -7,7 +7,7 @@
 
 #define INPUT_CAPACITY 31
 #define HISTORY_CAPACITY 12
-#define VISIBLE_HISTORY 5
+#define VISIBLE_HISTORY 3
 
 #define COLOR_BACKGROUND 0
 #define COLOR_PANEL 1
@@ -26,35 +26,36 @@ static int8_t selected_history = -1;
 static char input[INPUT_CAPACITY];
 static uint8_t input_length;
 static bool alpha_mode = true;
+static bool uppercase_once;
 
 static char alpha_character(uint8_t key) {
     switch (key) {
         case sk_Math:     return 'A';
         case sk_Apps:     return 'B';
         case sk_Prgm:     return 'C';
-        case sk_Vars:     return 'D';
-        case sk_Recip:    return 'E';
-        case sk_Sin:      return 'F';
-        case sk_Cos:      return 'G';
-        case sk_Tan:      return 'H';
-        case sk_Power:    return 'I';
-        case sk_Square:   return 'J';
-        case sk_Comma:    return 'K';
-        case sk_LParen:   return 'L';
-        case sk_RParen:   return 'M';
-        case sk_Div:      return 'N';
-        case sk_Log:      return 'O';
-        case sk_7:        return 'P';
-        case sk_8:        return 'Q';
-        case sk_9:        return 'R';
-        case sk_Mul:      return 'S';
-        case sk_Ln:       return 'T';
-        case sk_4:        return 'U';
-        case sk_5:        return 'V';
-        case sk_6:        return 'W';
-        case sk_Sub:      return 'X';
-        case sk_Store:    return 'Y';
-        case sk_1:        return 'Z';
+        case sk_Recip:    return 'D';
+        case sk_Sin:      return 'E';
+        case sk_Cos:      return 'F';
+        case sk_Tan:      return 'G';
+        case sk_Power:    return 'H';
+        case sk_Square:   return 'I';
+        case sk_Comma:    return 'J';
+        case sk_LParen:   return 'K';
+        case sk_RParen:   return 'L';
+        case sk_Div:      return 'M';
+        case sk_Log:      return 'N';
+        case sk_7:        return 'O';
+        case sk_8:        return 'P';
+        case sk_9:        return 'Q';
+        case sk_Mul:      return 'R';
+        case sk_Ln:       return 'S';
+        case sk_4:        return 'T';
+        case sk_5:        return 'U';
+        case sk_6:        return 'V';
+        case sk_Sub:      return 'W';
+        case sk_Store:    return 'X';
+        case sk_1:        return 'Y';
+        case sk_2:        return 'Z';
         case sk_0:        return ' ';
         default:          return '\0';
     }
@@ -127,8 +128,15 @@ static void submit_input(void) {
 static void handle_key(uint8_t key) {
     char character;
 
+    if (key == sk_2nd) {
+        alpha_mode = true;
+        uppercase_once = true;
+        return;
+    }
+
     if (key == sk_Alpha) {
         alpha_mode = !alpha_mode;
+        uppercase_once = false;
         return;
     }
 
@@ -175,6 +183,12 @@ static void handle_key(uint8_t key) {
 
     selected_history = -1;
     character = alpha_mode ? alpha_character(key) : number_character(key);
+    if (alpha_mode && character >= 'A' && character <= 'Z') {
+        if (!uppercase_once) {
+            character += 'a' - 'A';
+        }
+        uppercase_once = false;
+    }
     append_character(character);
 }
 
@@ -212,22 +226,23 @@ static void draw_screen(void) {
 
     gfx_SetColor(COLOR_PANEL);
     gfx_FillRectangle(0, 0, 320, 24);
-    print_at("UNIT CALCULATOR", 8, 8, COLOR_TEXT);
-    print_at(alpha_mode ? "ABC" : "123", 282, 8, COLOR_ACCENT);
+    print_at("units", 8, 8, COLOR_TEXT);
+    print_at(uppercase_once ? "(ABC)" : (alpha_mode ? "(abc)" : "(123)"),
+             270, 8, COLOR_ACCENT);
 
     for (i = 0; i < shown; i++) {
         uint8_t index = first + i;
 
         if ((int8_t)index == selected_history) {
             gfx_SetColor(COLOR_SELECTION);
-            gfx_FillRectangle(4, y - 3, 312, 27);
+            gfx_FillRectangle(4, y - 3, 312, 38);
         }
 
         print_at(">", 8, y, COLOR_ACCENT);
         print_at(history[index].text, 20, y, COLOR_TEXT);
-        print_at("hello ", 20, y + 13, COLOR_MUTED);
+        print_at("hello ", 20, y + 19, COLOR_MUTED);
         gfx_PrintString(history[index].text);
-        y += 31;
+        y += 45;
     }
 
     if (history_count == 0) {
@@ -237,12 +252,12 @@ static void draw_screen(void) {
     gfx_SetColor(COLOR_PANEL);
     gfx_FillRectangle(0, 190, 320, 50);
     print_at(selected_history >= 0 ? "ENTER: paste selected line" :
-             "ALPHA: ABC/123   CLEAR: exit", 8, 196, COLOR_MUTED);
+             "2ND: caps  ALPHA: abc/123", 8, 196, COLOR_MUTED);
     print_at(">", 8, 219, COLOR_ACCENT);
     print_at(input, 20, 219, COLOR_TEXT);
 
     gfx_SetColor(COLOR_ACCENT);
-    gfx_VertLine(20 + gfx_GetStringWidth(input), 216, 11);
+    gfx_VertLine(20 + gfx_GetStringWidth(input), 216, 18);
 }
 
 int main(void) {
@@ -250,6 +265,8 @@ int main(void) {
 
     gfx_Begin();
     gfx_SetDrawBuffer();
+    gfx_SetTextScale(1, 2);
+    gfx_SetTextBGColor(COLOR_BACKGROUND);
     gfx_SetTextTransparentColor(COLOR_BACKGROUND);
 
     gfx_palette[COLOR_BACKGROUND] = gfx_RGBTo1555(18, 22, 30);

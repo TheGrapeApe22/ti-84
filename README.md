@@ -7,10 +7,11 @@ later.
 
 ## Controls
 
-- Letter keys: type the blue/green letter printed above each calculator key.
-- `ALPHA`: toggle between `ABC` and `123` input modes. The current mode appears
+- Letter keys: type the lowercase form of the green letter printed above each key.
+- `2ND`: capitalize the next letter only, then return to lowercase.
+- `ALPHA`: toggle between `(abc)` and `(123)` input modes. The current mode appears
   in the top-right corner.
-- `0` in `ABC` mode: type a space.
+- `0` in `(abc)` mode: type a space.
 - `DEL`: delete the final input character.
 - `ENTER`: submit the current input.
 - `UP` / `DOWN`: select a previous input. Press `ENTER` to append the selected
