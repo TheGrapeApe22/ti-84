@@ -77,24 +77,33 @@ static void load_history(void)
     history_count = count;
 }
 
-static void save_history(void)
+static bool save_history(void)
 {
     uint8_t handle;
 
     handle = ti_Open(HISTORY_APPVAR, "w");
     if (!handle)
-	return;
+	return false;
     if (ti_Write(HISTORY_HEADER, 1, 4, handle) != 4 ||
 	ti_Write(&history_count, 1, 1, handle) != 1 ||
 	(history_count &&
 	 ti_Write(history, sizeof(history[0]), history_count, handle) !=
 	 history_count)) {
 	ti_Close(handle);
-	return;
+	return false;
     }
-    ti_SetGCBehavior(NULL, NULL);
-    ti_SetArchiveStatus(true, handle);
     ti_Close(handle);
+
+    handle = ti_Open(HISTORY_APPVAR, "r");
+    if (!handle)
+	return false;
+    ti_SetGCBehavior(NULL, NULL);
+    if (!ti_SetArchiveStatus(true, handle) || !ti_IsArchived(handle)) {
+	ti_Close(handle);
+	return false;
+    }
+    ti_Close(handle);
+    return true;
 }
 
 static char alpha_character(uint8_t key)

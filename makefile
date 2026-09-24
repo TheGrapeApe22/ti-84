@@ -2,8 +2,8 @@
 # CE C Toolchain options
 # ----------------------------
 
-NAME = UNITCALC
-DESCRIPTION = "Unit calculator console"
+NAME = UNITS
+DESCRIPTION = "Unit calculator engine"
 COMPRESSED = NO
 ARCHIVED = YES
 
