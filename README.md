@@ -13,13 +13,14 @@ featuring...
 ### Usage (mostly self explanatory)
 * Type unit expressions and press enter
 * Arrows to navigate cursor. Press enter while selecting a command in history to paste it onto your cursor.
+* The latest 6 history entries are saved to archive when you exit with 2nd+Off, survive RAM clears, and are restored the next time the app opens.
 * Alpha to toggle between letters and numbers/operators, and 2nd for uppercase lettters
 * 2nd+off to quit
 
 
 ### Workflow
 * Install [CE C/C++ Toolchain](https://ce-programming.github.io/toolchain/static/getting-started.html)
-* Install CeMU emulator for easy testing (requires a ROM dump from your physical calculator)
+* Install [CeMU emulator](https://github.com/CE-Programming/CEmu/releases/tag/v2.0) for easy testing (requires a ROM dump from your physical calculator)
 * `make` to compile to `bin/`
 
 Note: `bin/clibs.8xg` is a library downloaded from [here](https://tiny.cc/clibs)

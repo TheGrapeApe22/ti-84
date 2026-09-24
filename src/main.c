@@ -1,4 +1,5 @@
 #include <graphx.h>
+#include <fileioc.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -9,6 +10,8 @@
 
 #define INPUT_CAPACITY 65
 #define HISTORY_CAPACITY 6
+#define HISTORY_APPVAR "UNITHIST"
+#define HISTORY_HEADER "UCH1"
 #define COLOR_BACKGROUND 0
 #define COLOR_PANEL 1
 #define COLOR_TEXT 2
@@ -39,6 +42,59 @@ static void copy_text(char *out, size_t cap, const char *text)
 {
     strncpy(out, text, cap - 1);
     out[cap - 1] = '\0';
+}
+
+static void load_history(void)
+{
+    uint8_t handle, count, index;
+    uint16_t expected_size;
+    char header[4];
+
+    handle = ti_Open(HISTORY_APPVAR, "r");
+    if (!handle)
+	return;
+    if (ti_Read(header, 1, sizeof(header), handle) != sizeof(header) ||
+	memcmp(header, HISTORY_HEADER, sizeof(header)) ||
+	ti_Read(&count, 1, 1, handle) != 1 || count > HISTORY_CAPACITY) {
+	ti_Close(handle);
+	return;
+    }
+    expected_size = 5 + (uint16_t) count * sizeof(history[0]);
+    if (ti_GetSize(handle) != expected_size ||
+	(count && ti_Read(history, sizeof(history[0]), count, handle) != count)) {
+	ti_Close(handle);
+	return;
+    }
+    ti_Close(handle);
+    for (index = 0; index < count; index++) {
+	if (history[index].have[INPUT_CAPACITY - 1] ||
+	    history[index].want[INPUT_CAPACITY - 1] ||
+	    history[index].result[UNITS_RESULT_CAPACITY - 1]) {
+	    memset(history, 0, sizeof(history));
+	    return;
+	}
+    }
+    history_count = count;
+}
+
+static void save_history(void)
+{
+    uint8_t handle;
+
+    handle = ti_Open(HISTORY_APPVAR, "w");
+    if (!handle)
+	return;
+    if (ti_Write(HISTORY_HEADER, 1, 4, handle) != 4 ||
+	ti_Write(&history_count, 1, 1, handle) != 1 ||
+	(history_count &&
+	 ti_Write(history, sizeof(history[0]), history_count, handle) !=
+	 history_count)) {
+	ti_Close(handle);
+	return;
+    }
+    ti_SetGCBehavior(NULL, NULL);
+    ti_SetArchiveStatus(true, handle);
+    ti_Close(handle);
 }
 
 static char alpha_character(uint8_t key)
@@ -457,7 +513,7 @@ static void draw_screen(void)
 	}
     if (!history_count) {
 	if (database_ready)
-	    print_at("Try entering a quantity and unit :P", 8, 48,
+	    print_at("Enter a quantity and unit :P", 8, 48,
 		     COLOR_MUTED);
 	else {
 	    print_at("Database error:", 8, 42, COLOR_ACCENT);
@@ -487,6 +543,7 @@ int main(void)
 {
     uint8_t key;
     database_ready = units_load(database_error, sizeof(database_error));
+    load_history();
     gfx_Begin();
     gfx_SetDrawBuffer();
     gfx_SetTextScale(1, 2);
@@ -511,5 +568,6 @@ int main(void)
 	}
     }
     gfx_End();
+    save_history();
     return 0;
 }
