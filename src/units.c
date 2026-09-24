@@ -198,7 +198,7 @@ bool units_describe(const char *have, char *result, size_t cap) {
     token[n] = '\0'; while (isspace((unsigned char)*at)) at++;
     primitive_form(&value, normalized, sizeof(normalized));
     if (n && !*at && lookup(token, &value, &unit, &prefix)) {
-        if (prefix) { const char *display = prefix->name; uint8_t i; for (i = 0; i < prefix_count; i++) if (prefixes[i].scale == prefix->scale && strlen(prefixes[i].name) > strlen(display)) display = prefixes[i].name; snprintf(result, cap, "Definition: %s %s = %s", display, unit->name, normalized); }
+        if (prefix) { const char *display = prefix->name; uint8_t i; for (i = 0; i < prefix_count; i++) if (prefixes[i].scale == prefix->scale && strlen(prefixes[i].name) > strlen(display)) display = prefixes[i].name; snprintf(result, cap, "%s %s = %s", display, unit->name, normalized); }
         else if (strcmp(token, unit->name)) snprintf(result, cap, "%s = %s = %s", unit->name, unit->definition, normalized);
         else if (!strcmp(unit->definition, "!")) snprintf(result, cap, "%s = %s", unit->name, normalized);
         else snprintf(result, cap, "%s = %s = %s", unit->name, unit->definition, normalized);

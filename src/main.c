@@ -230,6 +230,7 @@ static void draw_screen(void) {
     uint8_t first = 0, last = 0, index, used = 0; int cursor_x, cursor_y, y = 28;
     if (history_count) {
         last = selected_history >= 0 ? (uint8_t)selected_history : history_count - 1; first = last; used = history_height(first);
+        while (last + 1 < history_count && used + history_height(last + 1) <= 108) { last++; used += history_height(last); }
         while (first && used + history_height(first - 1) <= 108) { first--; used += history_height(first); }
     }
     gfx_FillScreen(COLOR_BACKGROUND);
