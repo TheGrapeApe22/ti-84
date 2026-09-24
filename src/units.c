@@ -260,20 +260,35 @@ static bool parse_primary(parser_t *p, measure_t *out)
 
 static bool parse_factor(parser_t *p, measure_t *out)
 {
+    const char *primary = p->at;
     long power = 1;
     uint8_t i;
+    bool unit_primary;
+    while (isspace((unsigned char) *primary))
+	primary++;
+    unit_primary = isalpha((unsigned char) *primary);
     if (!parse_primary(p, out))
 	return false;
-    spaces(p);
-    if (*p->at == '^') {
+    if (unit_primary && isdigit((unsigned char) *p->at)) {
 	char *end;
-	p->at++;
 	power = strtol(p->at, &end, 10);
-	if (end == p->at || power < -12 || power > 12) {
+	if (power > 12) {
 	    fail(p, "Invalid exponent");
 	    return false;
 	}
 	p->at = end;
+    } else {
+	spaces(p);
+	if (*p->at == '^') {
+	    char *end;
+	    p->at++;
+	    power = strtol(p->at, &end, 10);
+	    if (end == p->at || power < -12 || power > 12) {
+		fail(p, "Invalid exponent");
+		return false;
+	    }
+	    p->at = end;
+	}
     }
     if (power != 1) {
 	out->scale = pow(out->scale, power);
