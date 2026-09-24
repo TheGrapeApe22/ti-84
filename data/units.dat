@@ -140,12 +140,8 @@ R 8.31446261815324 J / mol / K
 electroncharge 1.602176634e-19 C
 electronmass 9.1093837139e-31 kg
 protonmass 1.67262192595e-27 kg
-neutronmass 1.67492750056e-27 kg
-faradayconstant 96485.33212331002 C / mol
-bohrradius 5.29177210544e-11 m
 
 waterheat 4184 J / kg / K
-specificheatwater waterheat
 iceheat 2090 J / kg / K
 steamheat 2010 J / kg / K
 waterdensity 1000 kg / m^3
@@ -154,10 +150,8 @@ airdensity 1.225 kg / m^3
 earthradius 6.371e6 m
 moonradius 1.7374e6 m
 sunradius 6.957e8 m
-sunluminosity 3.828e26 W
 lunarmass 7.342e22 kg
 moondistance 3.844e8 m
-solartemp 5772 K
 
 hydrogen      1.008 g/mol
 helium     4.0026 g/mol
@@ -253,30 +247,7 @@ protactinium     231.04 g/mol
 uranium      238.03 g/mol
 neptunium     237 g/mol
 plutonium     244 g/mol
-americium     243 g/mol
-curium     247 g/mol
-berkelium     247 g/mol
-californium     251 g/mol
-einsteinium     252 g/mol
-fermium     257 g/mol
-mendelevium     258 g/mol
-nobelium     259 g/mol
-lawrencium     266 g/mol
-rutherfordium     267 g/mol
-dubnium     268 g/mol
-seaborgium     269 g/mol
-bohrium     270 g/mol
-hassium     270 g/mol
-meitnerium     278 g/mol
-darmstadtium     281 g/mol
-roentgenium     282 g/mol
-copernicium     285 g/mol
-nihonium     286 g/mol
-flerovium     289 g/mol
-moscovium     290 g/mol
-livermorium     293 g/mol
-tennessine     294 g/mol
-oganesson     294 g/mol
+
 natrium sodium
 kalium potassium
 wolfram tungsten
@@ -289,3 +260,4 @@ nagasaki                21 kiloton tnt
 fatman                  nagasaki
 littleboy               hiroshima
 tsarbomba               50 megaton tnt
+nit cd/m^2
