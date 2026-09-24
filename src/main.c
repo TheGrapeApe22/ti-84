@@ -82,6 +82,14 @@ static void recall_history(void) {
     selected_history = -1;
 }
 
+static void delete_selected_history(void) {
+    uint8_t index = (uint8_t)selected_history;
+    if (index + 1 < history_count) memmove(&history[index], &history[index + 1], sizeof(history[0]) * (history_count - index - 1));
+    history_count--;
+    if (!history_count) selected_history = -1;
+    else if (index >= history_count) selected_history = (int8_t)history_count - 1;
+}
+
 static void submit_input(void) {
     history_entry_t *entry;
     char result[UNITS_RESULT_CAPACITY];
@@ -141,18 +149,14 @@ static void handle_key(uint8_t key) {
     if (key == sk_Enter) { if (selected_history >= 0) recall_history(); else submit_input(); return; }
     if (key == sk_Clear) {
         if (selected_history >= 0) {
-            uint8_t index = (uint8_t)selected_history;
-            if (index + 1 < history_count) memmove(&history[index], &history[index + 1], sizeof(history[0]) * (history_count - index - 1));
-            history_count--;
-            if (!history_count) selected_history = -1;
-            else if (index >= history_count) selected_history = (int8_t)history_count - 1;
+            delete_selected_history();
         } else {
             reset_input(); prompt_error[0] = '\0'; uppercase_once = false;
         }
         return;
     }
     if (key == sk_Del) {
-        selected_history = -1;
+        if (selected_history >= 0) { delete_selected_history(); return; }
         if (cursor_position) {
             memmove(&input[cursor_position - 1], &input[cursor_position], input_length - cursor_position + 1);
             cursor_position--; input_length--;
