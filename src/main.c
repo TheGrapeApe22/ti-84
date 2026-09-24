@@ -6,9 +6,9 @@
 #include <string.h>
 #include "units.h"
 
-#define INPUT_CAPACITY 31
+#define INPUT_CAPACITY 65
 #define HISTORY_CAPACITY 6
-#define VISIBLE_HISTORY 3
+#define VISIBLE_HISTORY 1
 #define COLOR_BACKGROUND 0
 #define COLOR_PANEL 1
 #define COLOR_TEXT 2
@@ -161,20 +161,40 @@ static void print_at(const char *text, int x, int y, uint8_t color) {
     gfx_SetTextFGColor(color); gfx_SetTextXY(x, y); gfx_PrintString(text);
 }
 
-static void print_fitted(const char *text, int x, int y, unsigned int width, uint8_t color) {
-    char shown[64]; uint8_t length = 0;
-    while (text[length] && length < sizeof(shown) - 1) {
-        shown[length] = text[length]; shown[length + 1] = '\0';
-        if (gfx_GetStringWidth(shown) > width) break;
+static uint8_t wrapped_length(const char *text, unsigned int width) {
+    char line[INPUT_CAPACITY + 1]; uint8_t length = 0;
+    while (text[length] && length < sizeof(line) - 1) {
+        line[length] = text[length]; line[length + 1] = '\0';
+        if (gfx_GetStringWidth(line) > width) break;
         length++;
     }
-    shown[length] = '\0'; print_at(shown, x, y, color);
+    if (!length && *text) length = 1;
+    return length;
 }
 
-static int cursor_x(void) {
-    char saved = input[cursor_position]; int x;
-    input[cursor_position] = '\0'; x = 20 + gfx_GetStringWidth(input); input[cursor_position] = saved;
-    return x;
+static int draw_wrapped(const char *text, int x, int y, unsigned int width, uint8_t max_lines, uint8_t color) {
+    char line[INPUT_CAPACITY + 1]; uint8_t row = 0, length;
+    while (*text && row < max_lines) {
+        length = wrapped_length(text, width);
+        memcpy(line, text, length); line[length] = '\0';
+        print_at(line, x, y, color);
+        text += length; y += 18; row++;
+    }
+    return y;
+}
+
+static void cursor_location(int *x, int *y) {
+    const char *at = input; uint8_t consumed = 0, row = 0, length, prefix_length; char prefix[INPUT_CAPACITY + 1];
+    while (row < 2) {
+        length = wrapped_length(at, 292);
+        if (cursor_position <= consumed + length || !at[length]) {
+            prefix_length = cursor_position - consumed;
+            memcpy(prefix, at, prefix_length); prefix[prefix_length] = '\0';
+            *x = 20 + gfx_GetStringWidth(prefix); *y = 194 + row * 18; return;
+        }
+        consumed += length; at += length; row++;
+    }
+    *x = 20; *y = 212;
 }
 
 static uint8_t first_visible(void) {
@@ -186,34 +206,33 @@ static uint8_t first_visible(void) {
 }
 
 static void draw_screen(void) {
-    uint8_t first = first_visible(), shown = history_count - first, i;
-    int y = 28;
+    uint8_t first = first_visible(), shown = history_count - first, i; int cursor_x, cursor_y;
     if (shown > VISIBLE_HISTORY) shown = VISIBLE_HISTORY;
     gfx_FillScreen(COLOR_BACKGROUND);
     gfx_SetColor(COLOR_PANEL); gfx_FillRectangle(0, 0, 320, 24);
     print_at("units", 8, 8, COLOR_TEXT);
     print_at(uppercase_once ? "(ABC)" : (alpha_mode ? "(abc)" : "(123)"), 270, 8, COLOR_ACCENT);
     for (i = 0; i < shown; i++) {
-        uint8_t index = first + i; char line[64];
-        if ((int8_t)index == selected_history) { gfx_SetColor(COLOR_SELECTION); gfx_FillRectangle(4, y - 3, 312, 39); }
+        uint8_t index = first + i; char line[INPUT_CAPACITY * 2 + 5]; int y = 28;
+        if ((int8_t)index == selected_history) { gfx_SetColor(COLOR_SELECTION); gfx_FillRectangle(4, 25, 312, 110); }
         if (history[index].want[0]) snprintf(line, sizeof(line), "%s -> %s", history[index].have, history[index].want);
         else copy_text(line, sizeof(line), history[index].have);
-        print_at(">", 8, y, COLOR_ACCENT); print_fitted(line, 20, y, 296, COLOR_TEXT);
-        print_fitted(history[index].result, 20, y + 19, 296, COLOR_MUTED); y += 46;
+        print_at(">", 8, y, COLOR_ACCENT); y = draw_wrapped(line, 20, y, 296, 3, COLOR_TEXT);
+        draw_wrapped(history[index].result, 20, y + 1, 296, 3, COLOR_MUTED);
     }
     if (!history_count) {
         if (database_ready) print_at("Enter a value and its unit.", 8, 48, COLOR_MUTED);
-        else { print_at("Database error:", 8, 42, COLOR_ACCENT); print_fitted(database_error, 8, 63, 304, COLOR_MUTED); }
+        else { print_at("Database error:", 8, 42, COLOR_ACCENT); draw_wrapped(database_error, 8, 63, 304, 3, COLOR_MUTED); }
     }
-    gfx_SetColor(COLOR_PANEL); gfx_FillRectangle(0, 170, 320, 70);
-    if (prompt_error[0]) print_fitted(prompt_error, 8, 174, 304, COLOR_ACCENT);
+    gfx_SetColor(COLOR_PANEL); gfx_FillRectangle(0, 136, 320, 104);
+    if (prompt_error[0]) draw_wrapped(prompt_error, 8, 140, 304, 2, COLOR_ACCENT);
     else if (prompt == PROMPT_WANT) {
-        print_at("Have: ", 8, 174, COLOR_MUTED);
-        print_fitted(pending_have, gfx_GetTextX(), 174, 312 - gfx_GetTextX(), COLOR_TEXT);
+        char have_line[INPUT_CAPACITY + 7]; snprintf(have_line, sizeof(have_line), "You have: %s", pending_have);
+        draw_wrapped(have_line, 8, 140, 304, 2, COLOR_MUTED);
     }
-    print_at(prompt == PROMPT_WANT ? "You want:" : "You have:", 8, 196, COLOR_MUTED);
-    print_at(">", 8, 219, COLOR_ACCENT); print_at(input, 20, 219, COLOR_TEXT);
-    gfx_SetColor(COLOR_ACCENT); gfx_VertLine(cursor_x(), 216, 18);
+    print_at(prompt == PROMPT_WANT ? "You want:" : "You have:", 8, 177, COLOR_MUTED);
+    print_at(">", 8, 197, COLOR_ACCENT); draw_wrapped(input, 20, 197, 292, 2, COLOR_TEXT);
+    cursor_location(&cursor_x, &cursor_y); gfx_SetColor(COLOR_ACCENT); gfx_VertLine(cursor_x, cursor_y, 18);
 }
 
 int main(void) {

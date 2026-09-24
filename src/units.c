@@ -151,8 +151,25 @@ bool units_load(char *error, size_t cap) {
     loaded = true; return true;
 }
 bool units_validate_have(const char *have, char *error, size_t cap) { measure_t value; if (!loaded) { copy_text(error, cap, "UNITDB is not loaded"); return false; } return parse_quantity(have, &value, error, cap); }
+static void compact_number(double value, char *out, size_t cap) {
+    char normal[32], scientific[32], mantissa[24], *exponent_at, *end;
+    int exponent; size_t length;
+    snprintf(normal, sizeof(normal), "%.10g", value);
+    if (strlen(normal) <= 8 && !strchr(normal, 'e')) { copy_text(out, cap, normal); return; }
+    snprintf(scientific, sizeof(scientific), "%.6e", value);
+    exponent_at = strchr(scientific, 'e');
+    if (!exponent_at) { copy_text(out, cap, scientific); return; }
+    length = (size_t)(exponent_at - scientific);
+    if (length >= sizeof(mantissa)) length = sizeof(mantissa) - 1;
+    memcpy(mantissa, scientific, length); mantissa[length] = '\0';
+    end = mantissa + strlen(mantissa) - 1;
+    while (end > mantissa && *end == '0') *end-- = '\0';
+    if (end > mantissa && *end == '.') *end = '\0';
+    exponent = (int)strtol(exponent_at + 1, NULL, 10);
+    snprintf(out, cap, "%se%d", mantissa, exponent);
+}
 static void primitive_form(const measure_t *value, char *out, size_t cap) {
-    char part[28]; uint8_t i; snprintf(out, cap, "%.10g", value->scale);
+    char part[28], number[32]; uint8_t i; compact_number(value->scale, number, sizeof(number)); copy_text(out, cap, number);
     for (i = 0; i < DIMENSIONS; i++) if (value->dim[i]) { if (value->dim[i] == 1) snprintf(part, sizeof(part), " %s", primitive_name[i]); else snprintf(part, sizeof(part), " %s^%d", primitive_name[i], value->dim[i]); strncat(out, part, cap - strlen(out) - 1); }
 }
 bool units_convert(const char *have, const char *want, char *result, size_t cap) {
@@ -160,10 +177,10 @@ bool units_convert(const char *have, const char *want, char *result, size_t cap)
     if (!parse_quantity(have, &source, result, cap) || !parse_quantity(want, &target, result, cap)) return false;
     for (i = 0; i < DIMENSIONS; i++) if (source.dim[i] != target.dim[i]) { copy_text(result, cap, "Units are not compatible"); return false; }
     answer = source.scale / target.scale; if (fabs(answer) < 1e-12) answer = 0;
-    snprintf(result, cap, "%.10g %s", answer, want); return true;
+    { char number[32]; compact_number(answer, number, sizeof(number)); snprintf(result, cap, "%s %s", number, want); } return true;
 }
 bool units_describe(const char *have, char *result, size_t cap) {
-    measure_t value; char normalized[48], token[MAX_NAME]; const char *at = have; uint8_t n = 0; const unit_t *unit = NULL; const prefix_t *prefix = NULL;
+    measure_t value; char normalized[UNITS_RESULT_CAPACITY], token[MAX_NAME]; const char *at = have; uint8_t n = 0; const unit_t *unit = NULL; const prefix_t *prefix = NULL;
     if (!parse_quantity(have, &value, result, cap)) return false;
     while (isspace((unsigned char)*at)) at++;
     while (isalpha((unsigned char)*at) && n < MAX_NAME - 1) token[n++] = *at++;
@@ -171,9 +188,9 @@ bool units_describe(const char *have, char *result, size_t cap) {
     primitive_form(&value, normalized, sizeof(normalized));
     if (n && !*at && lookup(token, &value, &unit, &prefix)) {
         if (prefix) { const char *display = prefix->name; uint8_t i; for (i = 0; i < prefix_count; i++) if (prefixes[i].scale == prefix->scale && strlen(prefixes[i].name) > strlen(display)) display = prefixes[i].name; snprintf(result, cap, "Definition: %s %s = %s", display, unit->name, normalized); }
-        else if (strcmp(token, unit->name)) snprintf(result, cap, "Definition: %s = %s = %s", unit->name, unit->definition, normalized);
-        else if (!strcmp(unit->definition, "!")) snprintf(result, cap, "Definition: %s = %s", unit->name, normalized);
-        else snprintf(result, cap, "Definition: %s = %s = %s", unit->name, unit->definition, normalized);
-    } else snprintf(result, cap, "Definition: %s = %s", have, normalized);
+        else if (strcmp(token, unit->name)) snprintf(result, cap, "%s = %s = %s", unit->name, unit->definition, normalized);
+        else if (!strcmp(unit->definition, "!")) snprintf(result, cap, "%s = %s", unit->name, normalized);
+        else snprintf(result, cap, "%s = %s = %s", unit->name, unit->definition, normalized);
+    } else snprintf(result, cap, "%s = %s", have, normalized);
     return true;
 }
