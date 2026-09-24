@@ -218,9 +218,18 @@ static bool parse_primary(parser_t *p, measure_t *out)
 		if (*exponent == '+' || *exponent == '-')
 		    exponent++;
 		if (isdigit((unsigned char) *exponent)) {
-		    scan = exponent + 1;
-		    while (isdigit((unsigned char) *scan))
-			scan++;
+		    unsigned int exponent_value = 0;
+		    do {
+			unsigned int digit = (unsigned int) (*exponent - '0');
+			if (exponent_value > 30 ||
+			    (exponent_value == 30 && digit > 8)) {
+			    fail(p, "Scientific exponent too large");
+			    return false;
+			}
+			exponent_value = exponent_value * 10 + digit;
+			exponent++;
+		    } while (isdigit((unsigned char) *exponent));
+		    scan = exponent;
 		}
 	    }
 	    number_length = (size_t) (scan - start);
@@ -232,6 +241,10 @@ static bool parse_primary(parser_t *p, measure_t *out)
 	    number_text[number_length] = '\0';
 	    value = strtod(number_text, &end);
 	    if (end != number_text) {
+		if (!isfinite(value)) {
+		    fail(p, "Number is out of range");
+		    return false;
+		}
 		out->scale = value;
 		memset(out->dim, 0, DIMENSIONS);
 		p->at = scan;
